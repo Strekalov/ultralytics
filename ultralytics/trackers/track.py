@@ -129,9 +129,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         kwargs = {"feats": getattr(result, "feats", None)}
         if dets_del_list is not None:
             kwargs["dets_del"] = dets_del_list[i]
-        tracks = tracker.update(det, result.orig_img, **kwargs)
-        if len(tracks) == 0:
-            continue
+        # Reshape empties to (0, N): a frame the tracker did not promote is empty, not raw untracked detections
+        tracks = tracker.update(det, result.orig_img, **kwargs).reshape(-1, 9 if is_obb else 8)
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = result[idx]
 
