@@ -926,7 +926,7 @@ class BaseTrainer:
         if metrics is None:
             return None, None
         fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
-        if self.best_fitness is None or self.best_fitness < fitness:
+        if np.isfinite(fitness) and (self.best_fitness is None or self.best_fitness < fitness):
             self.best_fitness = fitness
         return metrics, fitness
 
