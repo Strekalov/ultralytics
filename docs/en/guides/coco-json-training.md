@@ -126,9 +126,9 @@ class COCODataset(YOLODataset):
 
 Parsed labels are saved to a `.cache` file next to the JSON (e.g. `instances_train.cache`). On subsequent training runs, the cache is loaded directly, skipping JSON parsing.
 
-!!! warning "The cache key is the JSON's file size, not its contents"
+!!! note "The cache key is file metadata, not contents"
 
-    `get_hash()` hashes file sizes and paths rather than file contents, so a re-run re-parses the JSON only when the JSON's byte count changes. Adding or removing images may also shift the image directory's own size and trigger a rebuild, but do not rely on it — the hash never inspects individual image files, so swapping one image for another can leave the size unchanged. An edit that preserves the byte count — nudging a coordinate, flipping `iscrowd`, swapping two equal-length class names — leaves the stale cache in place and trains on the old annotations with no warning, and replacing an image in place is invisible for the same reason. Delete the `.cache` file after editing annotations or images in place.
+    `get_hash()` hashes the JSON and every scanned image by path, size and modification time, so editing the annotations or replacing, adding or removing an image rebuilds the cache on the next run. Only a copy that preserves both the size and the modification time (for example `cp -p` or `rsync -t` over a same-sized file) goes unnoticed; delete the `.cache` file after such a copy.
 
 ## Connecting the Dataset to the Training Pipeline
 
