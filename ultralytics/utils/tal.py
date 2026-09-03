@@ -441,13 +441,14 @@ def make_anchors(feats, strides, grid_cell_offset=0.5):
     """
     anchor_points, stride_tensor = [], []
     assert feats is not None
-    dtype = feats[0].dtype
+    dtype = torch.float32  # bfloat16 has an 8-bit mantissa, so i + 0.5 is not representable for i >= 128
+    ref = feats[0].new_full((1,), 0, dtype=dtype)  # float32 on the feats device without baking device= into traces
     for i in range(len(feats)):  # use len(feats) to avoid TracerWarning from iterating over strides tensor
         stride = strides[i]
         h, w = feats[i].shape[2:] if isinstance(feats, list) else (int(feats[i][0]), int(feats[i][1]))
         # no cumsum (nondeterministic on CUDA), no device= (baked into traces), no out= (does not convert to CoreML)
-        sx = torch.arange(w).type_as(feats[0]) + grid_cell_offset  # shift x
-        sy = torch.arange(h).type_as(feats[0]) + grid_cell_offset  # shift y
+        sx = torch.arange(w).type_as(ref) + grid_cell_offset  # shift x
+        sy = torch.arange(h).type_as(ref) + grid_cell_offset  # shift y
         sy, sx = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
         anchor_points.append(torch.stack((sx, sy), -1).view(-1, 2))
         stride_tensor.append(feats[0].new_full((h * w, 1), stride, dtype=dtype))

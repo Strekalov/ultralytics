@@ -47,7 +47,9 @@ def _tf_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
     shape = x["feats"][0].shape  # BCHW
     boxes = x["boxes"]
     if self.format != "imx" and (self.dynamic or self.shape != shape):
-        self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
+        self.anchors, self.strides = (
+            a.transpose(0, 1).to(boxes.dtype) for a in make_anchors(x["feats"], self.stride, 0.5)
+        )
         self.shape = shape
     grid_h, grid_w = shape[2:4]
     grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=boxes.device).reshape(1, 4, 1)
