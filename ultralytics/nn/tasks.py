@@ -331,7 +331,7 @@ class BaseModel(torch.nn.Module):
             verbose (bool, optional): Whether to log the transfer progress.
         """
         model = (weights.get("ema") or weights["model"]) if isinstance(weights, dict) else weights  # ema first
-        csd = model.float().state_dict()  # checkpoint state_dict as FP32
+        csd = {k: v.float() if v.is_floating_point() else v for k, v in model.state_dict().items()}  # FP32 copy
 
         # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)
         cls_remapped = self._remap_cls_by_names(csd, model, verbose=verbose)
