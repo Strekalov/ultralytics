@@ -211,3 +211,6 @@ results.csv
 fuzz-sources/
 fuzz-datasets/
 fuzz-models/
+
+# NDJSON dataset that tests/test_python.py downloads into the working directory
+/coco8-ndjson.ndjson
